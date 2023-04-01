@@ -49,7 +49,7 @@ def cloneBranch(srcPath: Path, destPath: Path, branch: str) -> None:
 
 
 def checkoutCommit(srcPath: Path, destPath: Path, commitID: str) -> None:
-    cloneCMD: str = f"git clone {srcPath.resolve()} {destPath.resolve()}"
-    checkoutCMD: str = f"git -C {destPath.resolve()} checkout {commitID}"
+    cloneCMD: str = f"git clone {srcPath.resolve()} {destPath.resolve()} --quiet"
+    checkoutCMD: str = f"git -C {destPath.resolve()} checkout {commitID} --quiet"
     subprocess.run(args=cloneCMD, stdout=PIPE, shell=True)
     subprocess.run(args=checkoutCMD, stdout=PIPE, shell=True)
