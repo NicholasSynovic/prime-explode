@@ -29,3 +29,14 @@ def getBranchesList(repo: Repository, remote: bool = True) -> set[str]:
     data: List[str] = localBranches + remoteBranches
 
     return list(OrderedDict.fromkeys(data).keys())
+
+
+def checkoutBranch(repo: Path, branch: str) -> None:
+    cmd: str = f"git -C {repo.resolve()} checkout {branch}"
+
+    print(cmd)
+
+    process: CompletedProcess = subprocess.run(
+        args=cmd, stdout=PIPE, stderr=PIPE, shell=True
+    )
+    print(process.stderr)
