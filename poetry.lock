@@ -78,6 +78,17 @@ files = [
 pycparser = "*"
 
 [[package]]
+name = "progress"
+version = "1.6"
+description = "Easy to use progress bars"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "progress-1.6.tar.gz", hash = "sha256:c9c86e98b5c03fa1fe11e3b67c1feda4788b8d0fe7336c2ff7d5644ccfba34cd"},
+]
+
+[[package]]
 name = "pycparser"
 version = "2.21"
 description = "C parser in Python"
@@ -136,4 +147,4 @@ cffi = ">=1.9.1"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "7c079c31494330bfe58db1f4c3901b3ebf85443da5070884c73b340549979126"
+content-hash = "c362cbbd8fbbbfbf9a99efdd41ca0263c4a63994d89507e31d9fee0f2545ffc7"

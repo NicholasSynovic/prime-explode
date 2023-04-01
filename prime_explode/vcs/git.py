@@ -1,11 +1,10 @@
 import subprocess
 from collections import OrderedDict
-from os.path import isdir
 from pathlib import Path
-from subprocess import DEVNULL, PIPE, CompletedProcess
-from typing import List, Tuple
+from subprocess import PIPE
+from typing import List
 
-from pygit2 import Repository
+from pygit2 import GIT_SORT_REVERSE, Repository, Walker
 from pygit2.repository import Branches
 
 
@@ -13,11 +12,12 @@ def getRepoPath(path: Path) -> Path:
     return Path(path, ".git")
 
 
-def getBranchesList(repo: Repository, remote: bool = True) -> set[str]:
-    remoteBranches: List[str] = []
+def getBranchesList(path: Path, remote: bool = True) -> List[str]:
+    repo: Repository = Repository(path)
     branches: Branches = repo.branches
 
     localBranches: List[str] = list(branches.local)
+    remoteBranches: List[str] = []
 
     if remote:
         remoteBranches: List[str] = [
@@ -31,12 +31,11 @@ def getBranchesList(repo: Repository, remote: bool = True) -> set[str]:
     return list(OrderedDict.fromkeys(data).keys())
 
 
-def checkoutBranch(repo: Path, branch: str) -> None:
-    cmd: str = f"git -C {repo.resolve()} checkout {branch}"
+def checkoutBranch(path: Path, branch: str) -> None:
+    cmd: str = f"git -C {path.resolve()} checkout {branch}"
+    subprocess.run(args=cmd, stdout=PIPE, stderr=PIPE, shell=True)
 
-    print(cmd)
 
-    process: CompletedProcess = subprocess.run(
-        args=cmd, stdout=PIPE, stderr=PIPE, shell=True
-    )
-    print(process.stderr)
+def getCommitWalker(path: Path) -> Walker:
+    repo: Repository = Repository(path=path)
+    return repo.walk(repo.head.target, GIT_SORT_REVERSE)

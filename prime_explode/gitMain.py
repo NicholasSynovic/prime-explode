@@ -1,15 +1,14 @@
 from argparse import Namespace
-from itertools import pairwise
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
-from pygit2 import Repository
+from pygit2 import Walker
 
 from prime_explode.utils import filesystem
 from prime_explode.vcs import git
 
 
-def checkFileSystem(args: Namespace) -> None:
+def testFileSystem(args: Namespace) -> None:
     # Steps
 
     # 1. Check if the src directory exists
@@ -39,20 +38,20 @@ def main(args: Namespace) -> None:
     # 5. Checkout the repository to the HEAD commit
     # 4. Get a list of branches
 
-    checkFileSystem(args=args)
+    testFileSystem(args=args)
 
-    gitRepo: Repository = Repository(path=gitRepoSrc)
+    commitWalkers: List[Tuple[str, Walker]] = []
 
-    branches: List[str] = git.getBranchesList(repo=gitRepo)
-
-    data: List[iter] = []
+    branches: List[str] = git.getBranchesList(path=args.gitSrc)
 
     branch: str
     for branch in branches:
-        git.checkoutBranch(repo=gitRepo, branch=branch)
-        data.append(gitRepo.walk(gitRepo.head.target))
+        git.checkoutBranch(path=args.gitSrc, branch=branch)
+        commitWalker: Walker = git.getCommitWalker(path=args.gitSrc)
 
-    dp: pairwise = pairwise(data)
+        pair: Tuple[str, Walker] = (branch, commitWalker)
 
-    for d in dp:
-        print(d[0] == d[1])
+        commitWalkers.append(pair)
+
+    for pair in commitWalkers:
+        print(pair)
