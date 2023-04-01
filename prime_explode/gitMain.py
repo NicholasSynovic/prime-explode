@@ -42,7 +42,6 @@ def getCommitWalkers(gitPath: Path) -> List[Tuple[str, Walker]]:
     # 3. Return a list of iterators for each branch
 
     commitWalkers: List[Tuple[str, Walker]] = []
-
     branches: List[str] = git.getBranchesList(path=gitPath)
 
     with Bar(
@@ -62,13 +61,15 @@ def getCommitWalkers(gitPath: Path) -> List[Tuple[str, Walker]]:
 
 
 def createDestTree(branches: List[str], srcPath: Path, destPath: Path) -> None:
+    filesystem.createDirectory(path=destPath)
+
     with Bar("Cloning branches into destination...", max=len(branches)) as bar:
         with ThreadPoolExecutor() as executor:
 
-            def _run(pair: Tuple[str, Walker]) -> None:
-                tmpDestPath: Path = Path(destPath, "_tmp")
+            def _run(branch: str) -> None:
+                tmpDestPath: Path = Path(destPath, "_tmp", branch.replace("/", "_"))
                 tmpBranchPath: Path = git.cloneBranch(
-                    srcPath=srcPath, destPath=tmpDestPath, branch=pair[0]
+                    srcPath=srcPath, destPath=tmpDestPath, branch=branch
                 )
                 bar.next()
                 return tmpBranchPath
@@ -83,9 +84,9 @@ def createDestTree(branches: List[str], srcPath: Path, destPath: Path) -> None:
 
 def main(args: Namespace) -> None:
     testFileSystem(src=args.gitSrc, dest=args.gitDest)
-    filesystem.createDirectory(path=args.gitDest)
 
     commitWalkers: List[Tuple[str, Walker]] = getCommitWalkers(gitPath=args.gitSrc)
+
     branches: List[str] = [pair[0] for pair in commitWalkers]
 
-    createDestTree(branches=branches, srcPath=args.gitSrc, destPath=args.destSrc)
+    createDestTree(branches=branches, srcPath=args.gitSrc, destPath=args.gitDest)
