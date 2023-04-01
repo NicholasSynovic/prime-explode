@@ -1,5 +1,7 @@
 from argparse import Namespace
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from pathlib import Path
+from time import time
 from typing import List, Tuple
 
 from progress.bar import Bar
@@ -44,7 +46,9 @@ def getCommitWalkers(gitPath: Path) -> List[Tuple[str, Walker]]:
 
     branches: List[str] = git.getBranchesList(path=gitPath)
 
-    with Bar("Getting iterators of commits from each branch", max=len(branches)) as bar:
+    with Bar(
+        "Getting iterators of commits from each branch...", max=len(branches)
+    ) as bar:
         branch: str
         for branch in branches:
             git.checkoutBranch(path=gitPath, branch=branch)
@@ -64,5 +68,13 @@ def main(args: Namespace) -> None:
 
     commitWalkers: List[Tuple[str, Walker]] = getCommitWalkers(gitPath=args.gitSrc)
 
-    for branch, walker in commitWalkers:
-        print(branch)
+    with Bar("Cloning branches into destination...", max=len(commitWalkers)) as bar:
+        with ThreadPoolExecutor() as executor:
+
+            def _run(pair: Tuple[str, Walker]) -> None:
+                git.cloneBranch(
+                    srcPath=args.gitSrc, destPath=args.gitDest, branch=pair[0]
+                )
+                bar.next()
+
+            executor.map(_run, commitWalkers)

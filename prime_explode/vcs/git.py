@@ -1,7 +1,7 @@
 import subprocess
 from collections import OrderedDict
 from pathlib import Path
-from subprocess import PIPE
+from subprocess import PIPE, CompletedProcess
 from typing import List
 
 from pygit2 import GIT_SORT_REVERSE, Repository, Walker
@@ -39,3 +39,8 @@ def checkoutBranch(path: Path, branch: str) -> None:
 def getCommitWalker(path: Path) -> Walker:
     repo: Repository = Repository(path=path)
     return repo.walk(repo.head.target, GIT_SORT_REVERSE)
+
+
+def cloneBranch(srcPath: Path, destPath: Path, branch: str) -> None:
+    cmd: str = f"git clone --branch {branch} --quiet {srcPath.resolve()} {Path(destPath, branch.replace('/', '_')).resolve()}"
+    subprocess.run(args=cmd, stdout=PIPE, shell=True)
