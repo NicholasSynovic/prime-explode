@@ -85,16 +85,19 @@ def main(args: Namespace) -> None:
             args.gitDest, TEMP_GIT_CLONE_PATH, branch.replace("/", "_")
         )
         branchDirectory: Path = Path(args.gitDest, branch.replace("/", "_"))
+        commits: List[Commit] = list(walker)
 
-        with Spinner("Creating directories of commit per branch...") as spinner:
-            commit: Commit
-            for commit in walker:
-                commitID: str = commit.id.hex
-                commitDirectory: Path = Path(branchDirectory, commitID)
-                git.checkoutCommit(
-                    srcPath=tmpGitRepoDirectory,
-                    destPath=commitDirectory,
-                    commitID=commitID,
-                )
-                spinner.next()
-        exit()
+        with Bar(f"Creating directories of commit for branch: {branch}...") as bar:
+            with ThreadPoolExecutor() as executor:
+
+                def _run(commit: Commit) -> None:
+                    commitID: str = commit.id.hex
+                    commitDirectory: Path = Path(branchDirectory, commitID)
+                    git.checkoutCommit(
+                        srcPath=tmpGitRepoDirectory,
+                        destPath=commitDirectory,
+                        commitID=commitID,
+                    )
+                    bar.next()
+
+                executor.map(_run, commits)
