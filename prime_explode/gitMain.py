@@ -34,6 +34,12 @@ def testFileSystem(src: Path, dest: Path) -> None:
 
 
 def getCommitWalkers(gitPath: Path) -> List[Tuple[str, Walker]]:
+    # Steps:
+
+    # 1. Get a list of branches
+    # 2. For each branch, get an iterator of commits
+    # 3. Return a list of iterators for each branch
+
     commitWalkers: List[Tuple[str, Walker]] = []
 
     branches: List[str] = git.getBranchesList(path=gitPath)
@@ -53,10 +59,10 @@ def getCommitWalkers(gitPath: Path) -> List[Tuple[str, Walker]]:
 
 
 def main(args: Namespace) -> None:
-    # Steps:
-
-    # 5. Checkout the repository to the HEAD commit
-    # 4. Get a list of branches
-
     testFileSystem(src=args.gitSrc, dest=args.gitDest)
-    getCommitWalkers(gitPath=args.gitSrc)
+    filesystem.createDirectory(path=args.gitDest)
+
+    commitWalkers: List[Tuple[str, Walker]] = getCommitWalkers(gitPath=args.gitSrc)
+
+    for branch, walker in commitWalkers:
+        print(branch)
