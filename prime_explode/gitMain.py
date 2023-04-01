@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import List, Tuple
 
 from progress.bar import Bar
-from progress.spinner import Spinner
 from pygit2 import Commit, Walker
 
 from prime_explode.utils import filesystem
@@ -70,21 +69,14 @@ def createDestTree(branches: List[str], srcPath: Path, destPath: Path) -> None:
         filesystem.createDirectory(path=branchPath)
 
 
-def main(args: Namespace) -> None:
-    testFileSystem(src=args.gitSrc, dest=args.gitDest)
-
-    commitWalkers: List[Tuple[str, Walker]] = getCommitWalkers(gitPath=args.gitSrc)
-    branches: List[str] = [pair[0] for pair in commitWalkers]
-
-    createDestTree(branches=branches, srcPath=args.gitSrc, destPath=args.gitDest)
-
+def explodeCommits(commitWalkers: List[Tuple[str, Walker]], destPath: Path) -> None:
     branch: str
     walker: Walker
     for branch, walker in commitWalkers:
         tmpGitRepoDirectory: Path = Path(
-            args.gitDest, TEMP_GIT_CLONE_PATH, branch.replace("/", "_")
+            destPath, TEMP_GIT_CLONE_PATH, branch.replace("/", "_")
         )
-        branchDirectory: Path = Path(args.gitDest, branch.replace("/", "_"))
+        branchDirectory: Path = Path(destPath, branch.replace("/", "_"))
         commits: List[Commit] = list(walker)
 
         with Bar(f"Creating directories of commit for branch: {branch}...") as bar:
@@ -101,3 +93,14 @@ def main(args: Namespace) -> None:
                     bar.next()
 
                 executor.map(_run, commits)
+
+
+def main(args: Namespace) -> None:
+    testFileSystem(src=args.gitSrc, dest=args.gitDest)
+
+    commitWalkers: List[Tuple[str, Walker]] = getCommitWalkers(gitPath=args.gitSrc)
+    branches: List[str] = [pair[0] for pair in commitWalkers]
+
+    createDestTree(branches=branches, srcPath=args.gitSrc, destPath=args.gitDest)
+
+    explodeCommits(commitWalkers=commitWalkers, destPath=args.gitDest)
