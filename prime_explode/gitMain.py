@@ -61,26 +61,31 @@ def getCommitWalkers(gitPath: Path) -> List[Tuple[str, Walker]]:
     return commitWalkers
 
 
+def createDestTree(branches: List[str], srcPath: Path, destPath: Path) -> None:
+    with Bar("Cloning branches into destination...", max=len(branches)) as bar:
+        with ThreadPoolExecutor() as executor:
+
+            def _run(pair: Tuple[str, Walker]) -> None:
+                tmpDestPath: Path = Path(destPath, "_tmp")
+                tmpBranchPath: Path = git.cloneBranch(
+                    srcPath=srcPath, destPath=tmpDestPath, branch=pair[0]
+                )
+                bar.next()
+                return tmpBranchPath
+
+            clonePaths: Generator[Path] = executor.map(_run, branches)
+
+    for branch in branches:
+        _branch: str = branch.replace("/", "_")
+        branchPath: Path = Path(destPath, _branch)
+        filesystem.createDirectory(path=branchPath)
+
+
 def main(args: Namespace) -> None:
     testFileSystem(src=args.gitSrc, dest=args.gitDest)
     filesystem.createDirectory(path=args.gitDest)
 
     commitWalkers: List[Tuple[str, Walker]] = getCommitWalkers(gitPath=args.gitSrc)
+    branches: List[str] = [pair[0] for pair in commitWalkers]
 
-    with Bar("Cloning branches into destination...", max=len(commitWalkers)) as bar:
-        with ThreadPoolExecutor() as executor:
-
-            def _run(pair: Tuple[str, Walker]) -> None:
-                tmpDestPath: Path = Path(args.gitDest, "_tmp")
-                tmpBranchPath: Path = git.cloneBranch(
-                    srcPath=args.gitSrc, destPath=tmpDestPath, branch=pair[0]
-                )
-                bar.next()
-                return tmpBranchPath
-
-            clonePaths: Generator[Path] = executor.map(_run, commitWalkers)
-
-    for branch, _ in commitWalkers:
-        _branch: str = branch.replace("/", "_")
-        branchPath: Path = Path(args.gitDest, _branch)
-        filesystem.createDirectory(path=branchPath)
+    createDestTree(branches=branches, srcPath=args.gitSrc, destPath=args.destSrc)
