@@ -1,8 +1,7 @@
 from argparse import Namespace
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from time import time
-from typing import List, Tuple
+from typing import Generator, List, Tuple
 
 from progress.bar import Bar
 from pygit2 import Walker
@@ -72,9 +71,16 @@ def main(args: Namespace) -> None:
         with ThreadPoolExecutor() as executor:
 
             def _run(pair: Tuple[str, Walker]) -> None:
-                git.cloneBranch(
-                    srcPath=args.gitSrc, destPath=args.gitDest, branch=pair[0]
+                tmpDestPath: Path = Path(args.gitDest, "_tmp")
+                tmpBranchPath: Path = git.cloneBranch(
+                    srcPath=args.gitSrc, destPath=tmpDestPath, branch=pair[0]
                 )
                 bar.next()
+                return tmpBranchPath
 
-            executor.map(_run, commitWalkers)
+            clonePaths: Generator[Path] = executor.map(_run, commitWalkers)
+
+    for branch, _ in commitWalkers:
+        _branch: str = branch.replace("/", "_")
+        branchPath: Path = Path(args.gitDest, _branch)
+        filesystem.createDirectory(path=branchPath)

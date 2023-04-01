@@ -41,6 +41,10 @@ def getCommitWalker(path: Path) -> Walker:
     return repo.walk(repo.head.target, GIT_SORT_REVERSE)
 
 
-def cloneBranch(srcPath: Path, destPath: Path, branch: str) -> None:
-    cmd: str = f"git clone --branch {branch} --quiet {srcPath.resolve()} {Path(destPath, branch.replace('/', '_')).resolve()}"
+def cloneBranch(srcPath: Path, destPath: Path, branch: str) -> Path:
+    destPath: Path = Path(destPath, branch)
+    cmd: str = (
+        f"git clone --branch {branch} --quiet {srcPath.resolve()} {destPath.resolve()}"
+    )
     subprocess.run(args=cmd, stdout=PIPE, shell=True)
+    return destPath
