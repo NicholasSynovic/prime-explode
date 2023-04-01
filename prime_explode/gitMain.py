@@ -1,4 +1,5 @@
 from argparse import Namespace
+from pathlib import Path
 
 from prime_explode.utils import filesystem
 from prime_explode.vcs import git
@@ -19,10 +20,14 @@ def main(args: Namespace) -> None:
         print(f"{args.gitSrc} is not a valid source directory")
         exit(code=1)
 
-    if git.testIfGitRepo(path=args.gitSrc) is False:
+    gitRepoSrc: Path = git.getRepoPath(path=args.gitSrc)
+
+    if filesystem.testIfDirectory(path=gitRepoSrc) is False:
         print(f"{args.gitSrc} is not a valid Git repository")
         exit(code=2)
 
     if filesystem.testIfDirectory(args.gitDest):
         print(f"{args.gitDest} already exists.")
         exit(code=3)
+
+    git.checkoutHEAD(repo=gitRepoSrc)
