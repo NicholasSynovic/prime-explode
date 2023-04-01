@@ -27,18 +27,18 @@ def getArgs() -> Namespace:
     gitParser.add_argument(
         "-s",
         "--src-directory",
-        default=Path(".").resolve(),
         type=Path,
-        required=False,
+        required=True,
         help="Directory containing the repository to explode",
+        dest="gitSrc",
     )
     gitParser.add_argument(
         "-d",
         "--dest-directory",
-        default=Path(".").resolve(),
         type=Path,
-        required=False,
+        required=True,
         help="Directory to explode into",
+        dest="gitDest",
     )
 
     return parser.parse_args()
