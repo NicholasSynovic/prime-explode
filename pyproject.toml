@@ -8,6 +8,7 @@ packages = [{include = "prime_explode"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+pygit2 = "1.11.1"
 
 
 [build-system]

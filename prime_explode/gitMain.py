@@ -1,5 +1,8 @@
 from argparse import Namespace
 from pathlib import Path
+from typing import List
+
+from pygit2 import Repository
 
 from prime_explode.utils import filesystem
 from prime_explode.vcs import git
@@ -30,4 +33,6 @@ def main(args: Namespace) -> None:
         print(f"{args.gitDest.resolve()} already exists.")
         exit(code=3)
 
-    git.checkoutHEAD(repo=gitRepoSrc)
+    gitRepo: Repository = Repository(path=gitRepoSrc)
+
+    branches: set[str] = git.getBranchesList(repo=gitRepo)
