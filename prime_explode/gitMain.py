@@ -23,11 +23,11 @@ def main(args: Namespace) -> None:
     gitRepoSrc: Path = git.getRepoPath(path=args.gitSrc)
 
     if filesystem.testIfDirectory(path=gitRepoSrc) is False:
-        print(f"{args.gitSrc} is not a valid Git repository")
+        print(f"{args.gitSrc.resolve()} is not a valid Git repository")
         exit(code=2)
 
     if filesystem.testIfDirectory(args.gitDest):
-        print(f"{args.gitDest} already exists.")
+        print(f"{args.gitDest.resolve()} already exists.")
         exit(code=3)
 
     git.checkoutHEAD(repo=gitRepoSrc)
