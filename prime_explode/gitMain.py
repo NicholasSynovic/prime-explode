@@ -52,7 +52,7 @@ def createDestTree(branches: List[str], srcPath: Path, destPath: Path) -> None:
     filesystem.createDirectory(path=destPath)
 
     with Bar("Cloning branches into destination...", max=len(branches)) as bar:
-        with ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor(max_workers=16) as executor:
 
             def _run(branch: str) -> None:
                 tmpDestPath: Path = Path(
@@ -82,7 +82,7 @@ def explodeCommits(commitWalkers: List[Tuple[str, Walker]], destPath: Path) -> N
         with Bar(
             f"Creating directories of commit for branch: {branch}...", max=len(commits)
         ) as bar:
-            with ThreadPoolExecutor() as executor:
+            with ThreadPoolExecutor(max_workers=16) as executor:
 
                 def _run(commit: Commit) -> None:
                     commitID: str = commit.id.hex
