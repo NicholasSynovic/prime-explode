@@ -79,20 +79,18 @@ def explodeCommits(commitWalkers: List[Tuple[str, Walker]], destPath: Path) -> N
         branchDirectory: Path = Path(destPath, branch.replace("/", "_"))
         commits: List[Commit] = list(walker)
 
-        with Bar(f"Creating directories of commit for branch: {branch}...") as bar:
-            with ThreadPoolExecutor() as executor:
-
-                def _run(commit: Commit) -> None:
-                    commitID: str = commit.id.hex
-                    commitDirectory: Path = Path(branchDirectory, commitID)
-                    git.checkoutCommit(
-                        srcPath=tmpGitRepoDirectory,
-                        destPath=commitDirectory,
-                        commitID=commitID,
-                    )
-                    bar.next()
-
-                executor.map(_run, commits)
+        with Bar(
+            f"Creating directories of commit for branch: {branch}...", max=len(commits)
+        ) as bar:
+            commit: Commit = next(walker)
+            commitID: str = commit.id.hex
+            commitDirectory: Path = Path(branchDirectory, commitID)
+            git.checkoutCommit(
+                srcPath=tmpGitRepoDirectory,
+                destPath=commitDirectory,
+                commitID=commitID,
+            )
+            bar.next()
 
 
 def main(args: Namespace) -> None:
