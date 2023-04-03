@@ -82,15 +82,16 @@ def explodeCommits(commitWalkers: List[Tuple[str, Walker]], destPath: Path) -> N
         with Bar(
             f"Creating directories of commit for branch: {branch}...", max=len(commits)
         ) as bar:
-            commit: Commit = next(walker)
-            commitID: str = commit.id.hex
-            commitDirectory: Path = Path(branchDirectory, commitID)
-            git.checkoutCommit(
-                srcPath=tmpGitRepoDirectory,
-                destPath=commitDirectory,
-                commitID=commitID,
-            )
-            bar.next()
+            commit: Commit
+            for commit in commits:
+                commitID: str = commit.id.hex
+                commitDirectory: Path = Path(branchDirectory, commitID)
+                git.checkoutCommit(
+                    srcPath=tmpGitRepoDirectory,
+                    destPath=commitDirectory,
+                    commitID=commitID,
+                )
+                bar.next()
 
 
 def main(args: Namespace) -> None:
