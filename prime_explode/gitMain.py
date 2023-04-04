@@ -1,3 +1,4 @@
+import os
 from argparse import Namespace
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -10,6 +11,7 @@ from prime_explode.utils import filesystem
 from prime_explode.vcs import git
 
 TEMP_GIT_CLONE_PATH: str = "_tmp"
+MAX_THREADS: int = os.cpu_count()
 
 
 def testFileSystem(src: Path, dest: Path) -> None:
@@ -52,7 +54,7 @@ def createDestTree(branches: List[str], srcPath: Path, destPath: Path) -> None:
     filesystem.createDirectory(path=destPath)
 
     with Bar("Cloning branches into destination...", max=len(branches)) as bar:
-        with ThreadPoolExecutor(max_workers=16) as executor:
+        with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
 
             def _run(branch: str) -> None:
                 tmpDestPath: Path = Path(
@@ -82,14 +84,15 @@ def explodeCommits(commitWalkers: List[Tuple[str, Walker]], destPath: Path) -> N
         with Bar(
             f"Creating directories of commit for branch: {branch}...", max=len(commits)
         ) as bar:
-            with ThreadPoolExecutor(max_workers=16) as executor:
+            with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
 
                 def _run(commit: Commit) -> None:
                     commitID: str = commit.id.hex
                     commitDirectory: Path = Path(branchDirectory, commitID)
-                    git.checkoutCommit(
+                    git.cloneCommit(
                         srcPath=tmpGitRepoDirectory,
                         destPath=commitDirectory,
+                        branch=branch,
                         commitID=commitID,
                     )
                     bar.next()
